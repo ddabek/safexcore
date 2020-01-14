@@ -35,12 +35,11 @@ include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
 include(CheckLibraryExists)
 include(CheckFunctionExists)
-set(Boost_NO_BOOST_CMAKE ON)
 
 if (IOS)
     INCLUDE(CmakeLists_IOS.txt)
 endif()
-
+set(Boost_NO_BOOST_CMAKE ON)
 cmake_minimum_required(VERSION 2.8.7)
 
 project(safex)
