@@ -35,7 +35,7 @@ include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
 include(CheckLibraryExists)
 include(CheckFunctionExists)
-
+set(Boost_NO_BOOST_CMAKE ON)
 
 if (IOS)
     INCLUDE(CmakeLists_IOS.txt)
