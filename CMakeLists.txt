@@ -39,7 +39,6 @@ include(CheckFunctionExists)
 if (IOS)
     INCLUDE(CmakeLists_IOS.txt)
 endif()
-set(Boost_NO_BOOST_CMAKE ON)
 cmake_minimum_required(VERSION 2.8.7)
 
 project(safex)
@@ -363,6 +362,7 @@ add_definitions("-DBLOCKCHAIN_DB=${BLOCKCHAIN_DB}")
 # On ARM, having libunwind package (with .so's only) installed breaks static link.
 # When possible, avoid stack tracing using libunwind in favor of using easylogging++.
 if (APPLE)
+  set(Boost_NO_BOOST_CMAKE ON)
   set(DEFAULT_STACK_TRACE OFF)
   set(LIBUNWIND_LIBRARIES "")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
