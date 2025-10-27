@@ -232,8 +232,8 @@ t_command_server::t_command_server(
     m_command_lookup.set_handler(
       "ban"
     , std::bind(&t_command_parser_executor::ban, &m_parser, p::_1)
-    , "ban <IP> [<seconds>]"
-    , "Ban a given <IP> for a given amount of <seconds>."
+    , "ban [<IP>|@<filename>] [<seconds>]"
+    , "Ban a given <IP> or list of IPs from a file for a given amount of <seconds>."
     );
     m_command_lookup.set_handler(
       "unban"
@@ -298,6 +298,24 @@ t_command_server::t_command_server(
     , std::bind(&t_command_parser_executor::version, &m_parser, p::_1)
     , "Print version information."
     );
+
+    m_command_lookup.set_handler(
+      "safex_token_staked"
+    , std::bind(&t_command_parser_executor::staked_tokens_on_interval, &m_parser, p::_1)
+    , "Print amount of staked tokens for given interval (or for current interval if interval is not specified)"
+    );
+    m_command_lookup.set_handler(
+      "safex_network_fee"
+    , std::bind(&t_command_parser_executor::network_fee_on_interval, &m_parser, p::_1)
+    , "Print amount of network fee for given interval (or for current interval if interval is not specified)"
+    );
+    m_command_lookup.set_handler(
+          "safex_account_info"
+          , std::bind(&t_command_parser_executor::safex_account_info, &m_parser, p::_1)
+          , "safex_account_info <username>"
+          , "Print safex account info"
+  );
+
 }
 
 bool t_command_server::process_command_str(const std::string& cmd)

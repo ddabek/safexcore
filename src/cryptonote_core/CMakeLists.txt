@@ -37,8 +37,8 @@ if(BUILD_SAFEX_PROTOBUF_RPC)
 
     FOREACH(proto ${DATAMODEL_PROTOS})
       FILE(TO_NATIVE_PATH ${proto} proto_native)
-      EXECUTE_PROCESS(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} --proto_path=${PROTOMODEL_PATH} --cpp_out=${PROTOBINDING_PATH} ${proto_native}
-      RESULT_VARIABLE rv)
+      EXECUTE_PROCESS(COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I "${PROTOMODEL_PATH}" -I "${Protobuf_INCLUDE_DIR}" --cpp_out=${PROTOBINDING_PATH} ${proto_native}
+      RESULT_VARIABLE RET OUTPUT_VARIABLE OUT ERROR_VARIABLE ERR)
       # Optional, but that can show the user if something have gone wrong with the proto generation 
       IF(${rv})
            MESSAGE("Generation of data model returned ${rv} for proto ${proto_native}")
@@ -99,7 +99,7 @@ endif()
 
 safex_private_headers(cryptonote_core
   ${cryptonote_core_private_headers})
-  
+
 if(BUILD_SAFEX_PROTOBUF_RPC)
 
   safex_add_library(cryptonote_core
@@ -112,6 +112,7 @@ if(BUILD_SAFEX_PROTOBUF_RPC)
       common
       cncrypto
       blockchain_db
+      safex_core
       multisig
       ringct
       device
@@ -136,6 +137,7 @@ else()
       common
       cncrypto
       blockchain_db
+      safex_core
       multisig
       ringct
       device

@@ -257,6 +257,11 @@ namespace net_utils
                                m_current_speed_up(0)
     {}
 
+    connection_context_base(const connection_context_base& a): connection_context_base()
+    {
+      set_details(a.m_connection_id, a.m_remote_address, a.m_is_income);
+    }
+
     connection_context_base& operator=(const connection_context_base& a)
     {
       set_details(a.m_connection_id, a.m_remote_address, a.m_is_income);
@@ -281,6 +286,7 @@ namespace net_utils
 	{
 		virtual bool do_send(const void* ptr, size_t cb)=0;
     virtual bool close()=0;
+    virtual bool send_done()=0;
     virtual bool call_run_once_service_io()=0;
     virtual bool request_callback()=0;
     virtual boost::asio::io_service& get_io_service()=0;

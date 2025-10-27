@@ -34,6 +34,59 @@ cmake-debug:
 	mkdir -p build/debug
 	cd build/debug && cmake -D CMAKE_BUILD_TYPE=Debug ../..
 
+
+libwallet-build:
+	mkdir -p build/libwallet
+	cd build/libwallet && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
+                         		-DBUILD_TESTS=OFF -DSTATIC=ON -DBOOST_ROOT=${PWD}/boost \
+                         		-DSTATIC=ON \
+                         		-DProtobuf_USE_STATIC_LIBS=OFF \
+                         		-DBUILD_SAFEX_PROTOBUF_RPC=OFF \
+                         		-DARCH="x86-64" \
+                         		-DBUILD_64=ON \
+                         		-DCMAKE_BUILD_TYPE=release \
+                         		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
+                         		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
+                         		../.. && $(MAKE) wallet_merged epee easylogging lmdb unbound VERBOSE=1
+
+libwallet-build-windows:
+	cd contrib/depends && $(MAKE) HOST=x86_64-w64-mingw32
+	mkdir -p build/libwallet-win
+	cd build/libwallet-win && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=OFF \
+                         		-DBUILD_TESTS=OFF -DSTATIC=ON -DBOOST_ROOT=${PWD}/boost \
+                         		-DSTATIC=ON \
+                         		-DProtobuf_USE_STATIC_LIBS=OFF \
+                         		-DBUILD_SAFEX_PROTOBUF_RPC=OFF \
+                         		-DARCH="x86-64" \
+                         		-DBUILD_64=ON \
+                         		-DCMAKE_BUILD_TYPE=release \
+                         		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
+                         		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
+                         		-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE \
+                         		-DCMAKE_TOOLCHAIN_FILE=$(CURDIR)/contrib/depends/x86_64-w64-mingw32/share/toolchain.cmake \
+                         		../.. && $(MAKE) wallet_api VERBOSE=1
+
+libwallet-build-android:
+	cd contrib/depends && $(MAKE) HOST=aarch64-linux-android
+	mkdir -p build/libwallet-android
+	cd build/libwallet-android && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
+                         		-DBUILD_TESTS=OFF -DSTATIC=ON -DBOOST_ROOT=${PWD}/boost \
+                         		-DSTATIC=ON \
+                         		-DProtobuf_USE_STATIC_LIBS=OFF \
+                         		-DBUILD_SAFEX_PROTOBUF_RPC=OFF \
+                         		-DBUILD_64=ON \
+                         		-DCMAKE_BUILD_TYPE=release \
+                         		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
+                         		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
+                         		-DCMAKE_TOOLCHAIN_FILE=$(CURDIR)/contrib/depends/aarch64-linux-android/share/toolchain.cmake \
+                         		../.. && $(MAKE) wallet_merged epee easylogging lmdb unbound VERBOSE=1
+
+depends:
+	cd contrib/depends && $(MAKE) HOST=$(target) && cd ../.. && mkdir -p build/$(target)/release
+	cd build/$(target)/release && cmake -D STATIC=ON -D BUILD_SAFEX_PROTOBUF_RPC=OFF \
+			-D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release \
+			-DCMAKE_TOOLCHAIN_FILE=$(CURDIR)/contrib/depends/$(target)/share/toolchain.cmake ../../.. && $(MAKE)
+
 debug: cmake-debug
 	cd build/debug && $(MAKE)
 
@@ -45,12 +98,7 @@ debug-test:
 
 debug-all:
 	mkdir -p build/debug
-	cd build/debug && cmake -D BUILD_TESTS=ON -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Debug ../.. && $(MAKE)
-
-debug-all-protobuf:
-	mkdir -p build/debug
 	cd build/debug && cmake -D BUILD_SAFEX_PROTOBUF_RPC=ON -D BUILD_TESTS=ON -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Debug ../.. && $(MAKE)
-
 
 debug-static-all:
 	mkdir -p build/debug
@@ -58,7 +106,7 @@ debug-static-all:
 
 cmake-release:
 	mkdir -p build/release
-	cd build/release && cmake -D CMAKE_BUILD_TYPE=Release ../..
+	cd build/release && cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_WALLET_RPC=ON  ../..
 
 release: cmake-release
 	cd build/release && $(MAKE)
@@ -67,27 +115,22 @@ release-test:
 	mkdir -p build/release
 	cd build/release && cmake -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=release ../.. && $(MAKE) && $(MAKE) test
 
+release-test-win64-github:
+	mkdir -p build/release
+	cd build/release && cmake -G "MSYS Makefiles" -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=release -D ARCH="x86-64"  -D BUILD_64=ON -D CMAKE_TOOLCHAIN_FILE=../../cmake/64-bit-toolchain.cmake -D MSYS2_FOLDER=D:/a/_temp/msys/msys64 ../.. && $(MAKE) && $(MAKE) test
+
 release-all:
 	mkdir -p build/release
-	cd build/release && cmake -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=release ../.. && $(MAKE)
+	cd build/release && cmake -D BUILD_TESTS=ON -D CMAKE_BUILD_TYPE=release -D BUILD_WALLET_RPC=ON  ../.. && $(MAKE)
 
 release-static:
-	mkdir -p build/release
-	cd build/release && cmake -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release ../.. && $(MAKE)
-
-release-static-proto:
 	mkdir -p build/release
 	cd build/release && cmake -D STATIC=ON -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release ../.. && $(MAKE)
 
 dist-static:
 	mkdir -p build/dist
-	cd build/dist && cmake -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release -D BUILD_WALLET_RPC=ON -D BUILD_ADVANCED_WALLET=ON ../.. && $(MAKE)
+	cd build/dist && cmake -D STATIC=ON -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release -D BUILD_ADVANCED_WALLET=ON ../.. && $(MAKE)
 
-dist-static-proto:
-	mkdir -p build/dist
-	cd build/dist && cmake -D STATIC=ON -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release -D BUILD_WALLET_RPC=ON -D BUILD_ADVANCED_WALLET=ON ../.. && $(MAKE)
-
-	
 
 coverage:
 	mkdir -p build/debug
@@ -121,10 +164,6 @@ release-static-freebsd-x86_64:
 
 release-static-mac-x86_64:
 	mkdir -p build/release
-	cd build/release && cmake -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release -D BUILD_TAG="mac-x64" ../.. && $(MAKE)
-
-release-static-mac-x86_64-proto:
-	mkdir -p build/release
 	cd build/release && cmake -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=release -D BUILD_TAG="mac-x64" ../.. && $(MAKE)
 
 release-static-linux-i686:
@@ -133,12 +172,11 @@ release-static-linux-i686:
 
 release-static-win64:
 	mkdir -p build/release
-	cd build/release && cmake -G "MSYS Makefiles" -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release -D BUILD_TAG="win-x64" -D CMAKE_TOOLCHAIN_FILE=../../cmake/64-bit-toolchain.cmake -D MSYS2_FOLDER=c:/msys64 ../.. && $(MAKE)
-
-release-static-win64-proto:
-	mkdir -p build/release
 	cd build/release && cmake -G "MSYS Makefiles" -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release -D BUILD_TAG="win-x64" -D CMAKE_TOOLCHAIN_FILE=../../cmake/64-bit-toolchain.cmake -D MSYS2_FOLDER=c:/msys64 ../.. && $(MAKE)
 
+release-static-win64-proto-github:
+	mkdir -p build/release
+	cd build/release && cmake -G "MSYS Makefiles" -D Protobuf_USE_STATIC_LIBS=ON -D BUILD_SAFEX_PROTOBUF_RPC=ON -D STATIC=ON -D ARCH="x86-64" -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release -D BUILD_TAG="win-x64" -D CMAKE_TOOLCHAIN_FILE=../../cmake/64-bit-toolchain.cmake -D MSYS2_FOLDER=D:/a/_temp/msys/msys64 ../.. && $(MAKE)
 
 release-static-win32:
 	mkdir -p build/release
@@ -153,6 +191,8 @@ clean:
         read -r -p "This will destroy the build directory, continue (y/N)?: " CONTINUE; \
 	[ $$CONTINUE = "y" ] || [ $$CONTINUE = "Y" ] || (echo "Exiting."; exit 1;)
 	rm -rf build
+documentation:
+	doxygen Doxyfile
 
 tags:
 	ctags -R --sort=1 --c++-kinds=+p --fields=+iaS --extra=+q --language-force=C++ src contrib tests/gtest
